@@ -15,6 +15,7 @@ interface Member {
   theme: string;
   bio: string;
   detailRole: string;
+  code?: string;
 }
 
 @Component({
@@ -185,6 +186,52 @@ interface Member {
         }
       </div>
     }
+
+    <!-- Dialog Box Modal for Student Code -->
+    @if (selectedStudentCode()) {
+      <div class="modal-overlay" (click)="selectedStudentCode.set(null)">
+        <div 
+          class="retro-dialog" 
+          [class.cyan-theme]="selectedStudentCode()?.theme === 'cyan'" 
+          [class.purple-theme]="selectedStudentCode()?.theme === 'purple'"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="title-bar">
+            <div class="title-bar-left">
+              <div 
+                class="title-dot" 
+                [style.background]="selectedStudentCode()?.theme === 'cyan' ? 'var(--neon-cyan)' : 'var(--neon-purple)'"
+                [style.box-shadow]="selectedStudentCode()?.theme === 'cyan' ? '0 0 6px var(--neon-cyan-glow)' : '0 0 6px var(--neon-purple-glow)'"
+              ></div>
+              <span class="title-text">REGISTRO — {{ selectedStudentCode()?.avatar }}</span>
+            </div>
+            <div class="title-bar-actions">
+              <button class="title-btn close" (click)="selectedStudentCode.set(null)" aria-label="Close"></button>
+            </div>
+          </div>
+          <div class="dialog-body">
+            <div class="member-avatar" style="width: 50px; height: 50px; font-size: 16px;">
+              {{ selectedStudentCode()?.avatar }}
+            </div>
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">{{ selectedStudentCode()?.name }}</h3>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px;">Código de Estudiante</p>
+            </div>
+            <div class="dialog-code">
+              {{ selectedStudentCode()?.code }}
+            </div>
+            <button class="dialog-btn" (click)="selectedStudentCode.set(null)">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Jumpscare Fullscreen Overlay -->
+    @if (showJumpscare()) {
+      <div class="jumpscare-overlay" (click)="showJumpscare.set(false)">
+        <img src="/7f5f2b22d757e61b6ade6e6c51e0def3.gif" class="jumpscare-image" alt="SURPRISE JUMPSCARE!" />
+      </div>
+    }
   `,
   styles: [`
     .shutdown-screen {
@@ -204,6 +251,9 @@ export class App {
   protected readonly consoleCollapsed = signal(false);
   protected readonly hoveredMemberIndex = signal<number | null>(null);
   
+  protected readonly selectedStudentCode = signal<{ name: string; code: string; avatar: string; theme: string } | null>(null);
+  protected readonly showJumpscare = signal(false);
+
   protected commandInput = '';
   protected readonly logs = signal<LogLine[]>([]);
 
@@ -214,7 +264,8 @@ export class App {
       avatarText: 'N1',
       theme: 'cyan',
       detailRole: 'DevOps & Backend Engineer',
-      bio: 'Especialista en infraestructura, automatización y desarrollo de APIs en Node.js/Angular.'
+      bio: 'Especialista en infraestructura, automatización y desarrollo de APIs en Node.js/Angular.',
+      code: '230222002'
     },
     {
       name: 'Gersain Leal Muñoz',
@@ -222,7 +273,8 @@ export class App {
       avatarText: 'N2',
       theme: 'purple',
       detailRole: 'UI/UX & Frontend Designer',
-      bio: 'Apasionado por el diseño de interfaces modernas, transiciones avanzadas y experiencia de usuario.'
+      bio: 'Apasionado por el diseño de interfaces modernas, transiciones avanzadas y experiencia de usuario.',
+      code: '230222024'
     }
   ];
 
@@ -291,6 +343,15 @@ export class App {
       this.addLog('info', 'INFO', `Consultando registro: ${member.name}`);
       this.addLog('success', 'ROLE', `Rol: ${member.detailRole}`);
       this.addLog('success', 'BIO', `Detalle: ${member.bio}`);
+      this.addLog('success', 'CODE', `Código de Estudiante obtenido.`);
+      
+      // Trigger retro popup dialog box with student code
+      this.selectedStudentCode.set({
+        name: member.name,
+        code: member.code || '',
+        avatar: member.avatarText,
+        theme: member.theme
+      });
     }, 200);
   }
 
@@ -310,8 +371,9 @@ export class App {
           this.addLog('info', 'CMD', '  status  - Estadísticas de recursos del servidor.');
           this.addLog('info', 'CMD', '  members - Lista de integrantes del Grupo #5.');
           this.addLog('info', 'CMD', '  ping    - Test de latencia al servidor.');
-          this.addLog('info', 'CMD', '  juan    - Consultar info de Juan Manuel.');
-          this.addLog('info', 'CMD', '  gersain - Consultar info de Gersain.');
+          this.addLog('info', 'CMD', '  juan    - Consultar info y código de Juan Manuel.');
+          this.addLog('info', 'CMD', '  gersain - Consultar info y código de Gersain.');
+          this.addLog('info', 'CMD', '  surprise- Secreto / Sorpresa.');
           this.addLog('info', 'CMD', '  reboot  - Reiniciar el servidor de logs.');
           this.addLog('info', 'CMD', '  clear   - Limpiar pantalla de consola.');
           break;
@@ -349,6 +411,16 @@ export class App {
         case 'gersain':
           this.queryMember(1);
           break;
+        case 'surprise':
+          this.addLog('warning', 'WARN', 'Jumpscare sequence initiated...');
+          setTimeout(() => {
+            this.showJumpscare.set(true);
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+              this.showJumpscare.set(false);
+            }, 3000);
+          }, 200);
+          break;
         case 'reboot':
           this.rebootServer();
           break;
@@ -365,4 +437,3 @@ export class App {
     }
   }
 }
-
