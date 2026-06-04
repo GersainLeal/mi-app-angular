@@ -1,0 +1,58 @@
+name: Deploy to Siteground
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Instalar Angular CLI
+      - name: Set Angular CLI
+        run: npm install -g @angular/cli
+
+      # Instalar dependencias
+      - name: Install Dependencies
+        run: npm install
+
+      # Build del Proyecto Angular (producción)
+      - name: Build Angular Project
+        run: ng build --configuration production
+
+      # Verificar el build
+      - name: Verify Build Output
+        run: |
+          echo "=== Build Output ==="
+          ls -la dist/mi-app-angular/browser/
+
+      # Configurar clave SSH para autenticación
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SITEGROUND_SSH_KEY }}" > ~/.ssh/id_key
+          chmod 600 ~/.ssh/id_key
+          ssh-keyscan -p ${{ secrets.SITEGROUND_PORT }} ${{ secrets.SITEGROUND_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      # Desplegar al servidor SiteGround via rsync + SSH
+      - name: Deploy to SiteGround
+        run: |
+          rsync -avz --delete \
+            -e "ssh -p ${{ secrets.SITEGROUND_PORT }} -i ~/.ssh/id_key -o StrictHostKeyChecking=no" \
+            dist/mi-app-angular/browser/ \
+            ${{ secrets.SITEGROUND_USER }}@${{ secrets.SITEGROUND_HOST }}:~/public_html/
