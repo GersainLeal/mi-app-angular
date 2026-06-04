@@ -11,5 +11,5 @@ import { Component, signal } from '@angular/core';
   styles: [],
 })
 export class App {
-  protected readonly title = signal('La mamita de juanmanuel');
+  protected readonly title = signal('Mundo');
 }
