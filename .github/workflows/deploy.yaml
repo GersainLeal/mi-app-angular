@@ -60,3 +60,9 @@ jobs:
             -e "ssh -p ${{ secrets.SITEGROUND_PORT }} -o StrictHostKeyChecking=no" \
             dist/mi-app-angular/browser/ \
             ${{ secrets.SITEGROUND_USER }}@${{ secrets.SITEGROUND_HOST }}:~/www/jesusdavidm11.sg-host.com/public_html/
+
+      # Purgar el caché de Nginx en SiteGround después del despliegue
+      - name: Purge SiteGround Nginx Cache
+        run: |
+          ssh -p ${{ secrets.SITEGROUND_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SITEGROUND_USER }}@${{ secrets.SITEGROUND_HOST }} "php -r '\$sock = \"/chroot/tmp/site-tools.sock\"; \$request = array(\"api\" => \"domain-all\", \"cmd\" => \"update\", \"settings\" => array(\"json\" => 1), \"params\" => array(\"flush_cache\" => \"1\", \"id\" => \"jesusdavidm11.sg-host.com\", \"path\" => \"/(.*)\")); \$payload = json_encode(\$request, JSON_FORCE_OBJECT) . \"\n\"; \$fp = stream_socket_client(\"unix://\" . \$sock); if (\$fp) { fwrite(\$fp, \$payload); fclose(\$fp); }'"
+

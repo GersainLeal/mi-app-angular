@@ -1,12 +1,8 @@
-# Force index.php as default document (bypasses SiteGround Nginx cache)
-DirectoryIndex index.php index.html
-
-# Disable caching for HTML and PHP files (force fresh content)
-<FilesMatch "\.(html|php)$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+# Disable caching for HTML files (force fresh content)
+<FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
     Header set Pragma "no-cache"
     Header set Expires 0
-    Header set X-Accel-Expires 0
 </FilesMatch>
 
 # Enable mod_rewrite for Angular routing (SPA)
@@ -19,6 +15,7 @@ DirectoryIndex index.php index.html
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Otherwise, route through index.php (not index.html) to bypass Nginx cache
-    RewriteRule ^ /index.php [L]
+    # Otherwise, route through index.html
+    RewriteRule ^ /index.html [L]
 </IfModule>
+
