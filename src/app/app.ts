@@ -415,6 +415,11 @@ export class App {
           this.addLog('warning', 'WARN', 'Jumpscare sequence initiated...');
           setTimeout(() => {
             this.showJumpscare.set(true);
+            
+            // Reproducir sonido jumpscare
+            const audio = new Audio('/jumpscare.mp3');
+            audio.play().catch(err => console.error("Error al reproducir el sonido:", err));
+
             // Auto hide after 3 seconds
             setTimeout(() => {
               this.showJumpscare.set(false);
